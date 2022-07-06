@@ -32,5 +32,4 @@ workflows:
   my_Workflow:
     jobs:
       - myjob1
-      - myjob2
       - create_infrastructure
