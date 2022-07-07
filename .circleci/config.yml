@@ -1,82 +1,46 @@
 version: 2.1
-# Use a package of configuration called an orb.
 orbs:
-  # Choose either one of the orbs below
-  # welcome: circleci/welcome-orb@0.4.1
   aws-cli: circleci/aws-cli@2.0.3
-# Define the jobs we want to run for this project
-jobs:
-  myjob1:  # Choose any name, such as `build`
-    # The primary container, where your job's commands will run
-    docker:
-      - image: amazon/aws-cli
+commands:
+  destroy_environment:
     steps:
-      - checkout # check out the code in the project directory
-      - run: echo "hello world" # run the `echo` command
-
-    # Exercise: Config and Deployment
-  configure_infrastructure: 
-    docker:
-      - image: python:3.7-alpine3.11
-    steps:
-      - checkout
-      - add_ssh_keys:
-          # You can get this ID in the section where you registered the SSH Key
-          fingerprints: ["4b:8e:1f:13:a7:a0:5f:cb:22:cb:2b:77:d3:7c:88:e4"] 
       - run:
-          name: Install Ansible
-          command: |
-            # install the dependencies needed for your playbook
-            apk add --update ansible 
-      - run:
-          name: Run Playbook and Configure server
-          command: |
-            # Your command
-            ansible-playbook -i inventory.txt main-remote.yml
-
-  destroy_environments:
-  commands:
-   # Exercise - Rollback
-    destroy_environment:
-      steps:
-        - run:
-            name: Destroy environment
-            # ${CIRCLE_WORKFLOW_ID} is a Built-in environment variable 
-            # ${CIRCLE_WORKFLOW_ID:0:5} takes the first 5 chars of the variable CIRCLE_CI_WORKFLOW_ID 
+          name: Destroy environment
           when: on_fail
           command: |
             aws cloudformation delete-stack --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7}
-
-  # Exercise: Smoke Testing
-  # Exercise: Smoke Testing
+jobs:
+  myjob1:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: echo "hello world"
+  configure_infrastructure:
+    docker:
+      - image: 'python:3.7-alpine3.16'
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - '4b:8e:1f:13:a7:a0:5f:cb:22:cb:2b:77:d3:7c:88:e4'
+      - run:
+          name: Install Ansible
+          command: |
+            apk add --update ansible
+      - run:
+          name: Run Playbook and Configure server
+          command: |
+            ansible-playbook -i inventory.txt main-remote.yml
   smoke_test:
     docker:
-      - image: alpine:latest
+      - image: amazon/aws-cli
     steps:
       - run:
           name: Test job
-          # Fail the job intentionally to simulate an error.
-          command:  return 1
-      - destroy_environments  
-  # smoke_test:
-  #   docker:
-  #     - image: alpine:latest
-  #   steps:
-  #     - run: apk add --update curl
-  #     - run:
-  #         name: smoke test
-  #         command: |
-  #           URL="https://blog.udacity.com/"
-  #           # Test if website exists
-  #           if curl -s --head ${URL} 
-  #           then
-  #             return 0
-  #           else
-  #             return 1
-  #           fi
-
-# Exercise - Rollback
-  create_infrastructure: 
+          command: return 1
+      - destroy_environment
+  create_infrastructure:
     docker:
       - image: amazon/aws-cli
     steps:
@@ -88,15 +52,10 @@ jobs:
               --template-file template.yml \
               --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7} \
               --region us-east-1
-
-# Sequential workflow
 workflows:
-  # Name the workflow
   my_Workflow:
     jobs:
       - myjob1
       - configure_infrastructure
       - create_infrastructure
-      # smoke_test
       - smoke_test
-      - destroy_environments
