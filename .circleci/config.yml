@@ -21,8 +21,8 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-              # You can get this ID in the section where you registered the SSH Key
-              fingerprints: ["4b:8e:1f:13:a7:a0:5f:cb:22:cb:2b:77:d3:7c:88:e4"] 
+          # You can get this ID in the section where you registered the SSH Key
+          fingerprints: ["4b:8e:1f:13:a7:a0:5f:cb:22:cb:2b:77:d3:7c:88:e4"] 
       - run:
           name: Install Ansible
           command: |
@@ -35,7 +35,7 @@ jobs:
             ansible-playbook -i inventory.txt main-remote.yml
 
   destroy_environments:
-    commands:
+  commands:
    # Exercise - Rollback
     destroy_environment:
       steps:
@@ -57,7 +57,7 @@ jobs:
           name: Test job
           # Fail the job intentionally to simulate an error.
           command:  return 1
-      - destroy_environment  
+      - destroy_environments  
   # smoke_test:
   #   docker:
   #     - image: alpine:latest
@@ -88,7 +88,6 @@ jobs:
               --template-file template.yml \
               --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7} \
               --region us-east-1
-            #I added depends on for testing
 
 # Sequential workflow
 workflows:
