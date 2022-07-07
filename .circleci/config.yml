@@ -38,7 +38,8 @@ jobs:
     steps:
       - run:
           name: Test job
-          command: return 1
+          # command: return 1
+          command: return 0
       - destroy_environment
   create_infrastructure:
     docker:
