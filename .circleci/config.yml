@@ -39,7 +39,7 @@ jobs:
       - run:
           name: Test job
           # command: return 1
-          command: return 0
+          command: return 1
       - destroy_environment
   create_infrastructure:
     docker:
